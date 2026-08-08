@@ -2,19 +2,205 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Cyber-Cibles - Serveur de test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber-Cibles | Serveur Vulnérable</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #111; color: #0f0; }
-        a { color: #0a0; text-decoration: none; font-size: 1.2rem; display: block; margin: 15px; }
-        a:hover { color: #fff; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; padding: 20px; }
+        .nav-bar { background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; border: 1px solid #334155; }
+        button.nav-btn { background: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        button.nav-btn:hover { background: #2563eb; }
+        .target-container { background: #1e293b; padding: 30px; border-radius: 8px; border: 1px solid #334155; max-width: 600px; margin: 0 auto; display: none; }
+        .active-target { display: block; }
+        
+        /* Styles pour formulaires */
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #00ff00; font-family: monospace; box-sizing: border-box; }
+        button.action-btn { width: 100%; background: #10b981; color: white; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .waf-alert { background: #7f1d1d; color: #fca5a5; padding: 15px; border-radius: 4px; margin-top: 15px; font-family: monospace; border: 1px solid #ef4444; display: none; }
+        .success-box { background: #14532d; color: #6ee7b7; padding: 15px; border-radius: 4px; margin-top: 15px; border: 1px solid #22c55e; display: none; }
+        
+        /* Terminal Web Shell */
+        .web-shell { background: #000; border: 1px solid #333; border-radius: 4px; font-family: monospace; font-size: 0.9rem; margin-top: 20px; display: none; }
+        .shell-header { background: #333; padding: 5px 10px; font-size: 0.8rem; color: #ccc; }
+        .shell-output { padding: 10px; height: 200px; overflow-y: auto; color: #00ff00; }
+        .shell-input-line { display: flex; padding: 10px; border-top: 1px solid #333; }
+        .shell-prompt { color: #ff3333; margin-right: 8px; }
+        .shell-input { background: transparent; border: none; color: #fff; outline: none; flex: 1; font-family: monospace; padding: 0; margin: 0; }
     </style>
 </head>
 <body>
-    <h1>Serveur de cibles vulnérables actif</h1>
-    <p>Ce serveur héberge des environnements de test isolés pour CyberAcademy.</p>
-    <div style="margin-top: 40px;">
-        <a href="bank-sqli.html">🎯 Cible 1 : Injection SQL (CyberBank)</a>
-        <a href="social-xss.html">🎯 Cible 2 : Faille XSS (Livre d'Or)</a>
+
+    <div class="nav-bar">
+        <button class="nav-btn" onclick="showTarget('target-sqli')">Cible 1 : WAF & SQLi</button>
+        <button class="nav-btn" onclick="showTarget('target-lfi')">Cible 2 : Faille LFI</button>
+        <button class="nav-btn" onclick="showTarget('target-rce')">Cible 3 : Ping & WebShell</button>
     </div>
+
+    <!-- ============================================== -->
+    <!-- CIBLE 1 : SQL INJECTION AVEC WAF               -->
+    <!-- ============================================== -->
+    <div id="target-sqli" class="target-container active-target">
+        <h2 style="color: #38bdf8; margin-top:0;">🛡️ Secure Portal (WAF Protected)</h2>
+        <p style="font-size: 0.9em; color: #94a3b8;">Ce panneau est protégé par un pare-feu Cloud. Les injections basiques seront bloquées.</p>
+        
+        <input type="text" id="sqli-user" placeholder="Nom d'utilisateur">
+        <input type="password" id="sqli-pass" placeholder="Mot de passe">
+        <button class="action-btn" onclick="testSQLi()">Authentification</button>
+
+        <div id="sqli-waf" class="waf-alert">
+            [WAF BLOCK] Requête malveillante détectée. Signature correspondante : SQL_INJECTION_GENERIC. Votre IP a été logguée.
+        </div>
+        <div id="sqli-success" class="success-box"></div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- CIBLE 2 : LOCAL FILE INCLUSION (LFI)           -->
+    <!-- ============================================== -->
+    <div id="target-lfi" class="target-container">
+        <h2 style="color: #eab308; margin-top:0;">📂 Lecteur de Documents</h2>
+        <p style="font-size: 0.9em; color: #94a3b8;">Notre script lit le fichier demandé sur le serveur.</p>
+        
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="color: #cbd5e1; font-family: monospace;">https://cible.com/download.php?file=</span>
+            <input type="text" id="lfi-input" value="rapport_public.txt" style="margin: 0; width: auto; flex: 1;">
+        </div>
+        <button class="action-btn" style="background:#ca8a04;" onclick="testLFI()">Lire le fichier</button>
+
+        <div id="lfi-output" style="background: #000; color: #a3e635; padding: 15px; font-family: monospace; border-radius: 4px; margin-top: 15px; display: none; white-space: pre-wrap; word-break: break-all;"></div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- CIBLE 3 : COMMAND INJECTION & WEB SHELL        -->
+    <!-- ============================================== -->
+    <div id="target-rce" class="target-container">
+        <h2 style="color: #ef4444; margin-top:0;">⚡ Outil de Diagnostic Réseau</h2>
+        <p style="font-size: 0.9em; color: #94a3b8;">Entrez une IP pour tester la connectivité (ex: 8.8.8.8).</p>
+        
+        <div id="rce-form">
+            <input type="text" id="rce-input" placeholder="Adresse IP">
+            <button class="action-btn" style="background:#dc2626;" onclick="testRCE()">Lancer le Ping</button>
+            <div id="rce-loading" style="color: #cbd5e1; margin-top: 10px; display: none;">Exécution de la commande système ping...</div>
+        </div>
+
+        <!-- Le Terminal caché qui s'ouvrira en cas de succès -->
+        <div id="web-shell" class="web-shell">
+            <div class="shell-header">🔴 Reverse Web Shell (Privilèges : www-data)</div>
+            <div id="shell-out" class="shell-output">
+                Linux ip-10-0-5-4 5.15.0-76-generic #83-Ubuntu SMP x86_64<br>
+                [!] Accès système obtenu via Command Injection.<br>
+            </div>
+            <div class="shell-input-line">
+                <span class="shell-prompt">www-data@server:/var/www/html$</span>
+                <input type="text" id="shell-in" class="shell-input" autocomplete="off" onkeydown="handleShell(event)">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation entre les cibles
+        function showTarget(targetId) {
+            document.querySelectorAll('.target-container').forEach(el => el.classList.remove('active-target'));
+            document.getElementById(targetId).classList.add('active-target');
+        }
+
+        // --- Logique Cible 1 (WAF SQLi) ---
+        function testSQLi() {
+            const u = document.getElementById('sqli-user').value.toLowerCase();
+            const waf = document.getElementById('sqli-waf');
+            const success = document.getElementById('sqli-success');
+            waf.style.display = 'none'; success.style.display = 'none';
+
+            setTimeout(() => {
+                // Le WAF bloque les motifs trop évidents
+                if(u.includes('or 1=1') || u.includes('or true') || u.includes('<script>') || u.includes('or "1"="1')) {
+                    waf.style.display = 'block';
+                } 
+                // Contournement expert : commentaire de la suite de la requête ou UNION
+                else if(u === "admin'--" || u === "admin' #" || u.includes("union select")) {
+                    success.innerHTML = '<strong>Bypass réussi ! Filtre contourné.</strong><br><br>FLAG{WAF_BYPASS_EXPERT_SQL}';
+                    success.style.display = 'block';
+                } 
+                else {
+                    waf.innerHTML = "Identifiants incorrects.";
+                    waf.style.display = 'block';
+                    waf.style.background = "#1e293b"; waf.style.color = "#94a3b8"; waf.style.borderColor = "#334155";
+                }
+            }, 600);
+        }
+
+        // --- Logique Cible 2 (LFI) ---
+        function testLFI() {
+            const input = document.getElementById('lfi-input').value;
+            const out = document.getElementById('lfi-output');
+            out.style.display = 'none';
+
+            setTimeout(() => {
+                out.style.display = 'block';
+                if(input === 'rapport_public.txt') {
+                    out.innerText = "Rapport financier Q3: Tout va bien. Aucun secret ici.";
+                } 
+                else if(input.includes('../') && (input.includes('passwd') || input.includes('shadow'))) {
+                    out.innerText = "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\n\n# FLAG TROUVÉ DANS LE SYSTÈME : FLAG{LFI_PATH_TRAVERSAL_ROOT}";
+                } 
+                else {
+                    out.innerText = "Warning: include(" + input + "): failed to open stream: No such file or directory.";
+                }
+            }, 500);
+        }
+
+        // --- Logique Cible 3 (RCE -> Terminal) ---
+        function testRCE() {
+            const input = document.getElementById('rce-input').value;
+            const loading = document.getElementById('rce-loading');
+            loading.style.display = 'block';
+            loading.innerText = "Exécution de la commande système ping -c 3 " + input + "...";
+
+            setTimeout(() => {
+                loading.style.display = 'none';
+                // Si l'utilisateur injecte un ';' ou un '&&' pour chainer une commande
+                if(input.includes(';') || input.includes('&&') || input.includes('|')) {
+                    document.getElementById('rce-form').style.display = 'none';
+                    document.getElementById('web-shell').style.display = 'block';
+                    document.getElementById('shell-in').focus();
+                } else {
+                    loading.style.display = 'block';
+                    loading.innerText = "ping: unknown host " + input;
+                }
+            }, 1000);
+        }
+
+        // Logique du Terminal WebShell (Cible 3)
+        function handleShell(e) {
+            if(e.key === 'Enter') {
+                const inputEl = document.getElementById('shell-in');
+                const outEl = document.getElementById('shell-out');
+                const cmd = inputEl.value.trim();
+                
+                outEl.innerHTML += `<div><span style="color:#ff3333">www-data@server:/var/www/html$</span> ${cmd}</div>`;
+                
+                if(cmd === 'ls') {
+                    outEl.innerHTML += `<div style="color:#38bdf8">index.php  diagnostic.php  <span style="color:#fff">secret_flag.txt</span></div>`;
+                } 
+                else if(cmd.startsWith('cat ')) {
+                    if(cmd.includes('secret_flag.txt')) {
+                        outEl.innerHTML += `<div style="color:#fbbf24; font-weight:bold;">FLAG{RCE_WEB_SHELL_PWNED}</div>`;
+                    } else {
+                        outEl.innerHTML += `<div>cat: fichier introuvable.</div>`;
+                    }
+                } 
+                else if(cmd === 'whoami') {
+                    outEl.innerHTML += `<div>www-data</div>`;
+                } 
+                else if(cmd === 'clear') {
+                    outEl.innerHTML = '';
+                }
+                else if(cmd !== '') {
+                    outEl.innerHTML += `<div>bash: ${cmd}: command not found</div>`;
+                }
+                
+                inputEl.value = '';
+                outEl.scrollTop = outEl.scrollHeight;
+            }
+        }
+    </script>
 </body>
 </html>
