@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Livre d'Or Vulnérable</title>
+    <style>
+        body { font-family: sans-serif; background: #fff; padding: 20px; color: #333; }
+        .box { max-width: 500px; margin: 0 auto; }
+        textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; box-sizing: border-box; }
+        button { padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #219150; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h3 style="color: #2980b9;">📝 Livre d'Or Public</h3>
+        <p style="font-size: 0.9em; color: #666;">Laissez un message (Le HTML brut est curieusement autorisé...)</p>
+        <textarea id="txt" placeholder="<script>..."></textarea>
+        <button onclick="post()">Publier</button>
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+        
+        <div id="comments" style="background: #f9f9f9; padding: 15px; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 100px;">
+            <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
+                <strong>Admin :</strong> N'hésitez pas à tester le site !
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function post() {
+            const txt = document.getElementById('txt').value;
+            const coms = document.getElementById('comments');
+            
+            const div = document.createElement('div');
+            div.style.cssText = "margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;";
+            
+            // Fausse protection basique pour simuler une faille
+            div.innerHTML = '<strong>Vous :</strong> ' + txt.replace(/</g, "&lt;").replace(/>/g, "&gt;"); 
+            coms.appendChild(div);
+            
+            document.getElementById('txt').value = '';
+            
+            setTimeout(() => {
+                if (txt.toLowerCase().includes("<script>") && txt.toLowerCase().includes("alert(")) {
+                    alert("BIP BOOP ! Faille XSS Stored exécutée !\\n\\nFLAG{XSS_STORED_COOKIE_STEALER}");
+                    document.body.innerHTML = '<div style="text-align:center; padding:50px;"><h2 style="color:#27ae60;">🔓 Code Exécuté !</h2><p>Bravo, vous avez volé la session !</p><div style="background:#eee; padding:10px; font-family:monospace; font-weight:bold; border:2px dashed #27ae60; display:inline-block;">FLAG{XSS_STORED_COOKIE_STEALER}</div></div>';
+                }
+            }, 500);
+        }
+    </script>
+</body>
+</html>
