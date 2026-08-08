@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>CyberBank - Login</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        input, button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; }
+        button { background: #3498db; color: white; border: none; font-weight: bold; cursor: pointer; font-family: sans-serif; }
+        button:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <div class="login-box" id="container">
+        <h2 style="color: #2c3e50; margin-top: 0;">🔒 CyberBank</h2>
+        <div id="msg" style="color: red; font-size: 0.85em; min-height: 20px; font-weight: bold; margin-bottom: 10px;"></div>
+        <input type="text" id="user" placeholder="Identifiant (Admin)">
+        <input type="password" id="pass" placeholder="Mot de passe">
+        <button onclick="check()">Accéder aux comptes</button>
+    </div>
+
+    <script>
+        function check() {
+            const u = document.getElementById('user').value;
+            const msg = document.getElementById('msg');
+            const c = document.getElementById('container');
+            msg.style.color = "#555"; 
+            msg.innerText = "Querying database...";
+            
+            setTimeout(() => {
+                if (u.includes("' OR '1'='1") || u.includes('" OR "1"="1')) {
+                    c.innerHTML = '<h2 style="color:#27ae60;">🔓 Bypass Réussi</h2><p>Copiez ce flag :</p><div style="background:#eee; padding:10px; font-family:monospace; font-weight:bold; border:2px dashed #27ae60;">FLAG{SQL_INJECTION_MASTER_2026}</div>';
+                } else if (u.includes("'") || u.includes('"')) {
+                    msg.style.color = "red"; 
+                    msg.innerText = "Warning: mysql_fetch_array() expects parameter 1 to be resource...";
+                } else {
+                    msg.style.color = "red"; 
+                    msg.innerText = "Identifiants invalides dans la table users.";
+                }
+            }, 800);
+        }
+    </script>
+</body>
+</html>
